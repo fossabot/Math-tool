@@ -1,9 +1,15 @@
 #include "funkcie.h"
 
 void func(string& dst, int i, int val) {
+    string a = to_string(i);
+    string b = to_string(val);
+
+    reverse(a.begin(), a.end());
+    reverse(b.begin(), b.end());
+
     if (i == 1) dst += "x";
-    if (i > 1) dst += to_string(i) + "^x";
-    if (i == 0 || val > 1) dst += to_string(val);
+    if (i > 1) dst += a + "^x";
+    if (i == 0 || val > 1) dst += b;
     dst += " + ";
 }
 
@@ -15,14 +21,14 @@ void transform(string& dst, ZZ_pX src) { //format polynomial to output string
     dst.erase(dst.length() - 3, dst.length());
 }
 
-void vypis(ZZ_pX A) { //TODO replace with overloaded ostream
+void vypis(ZZ_pX A) { 
     string output = "";
     transform(output, A);
     reverse(output.begin(), output.end());
     cout << output << endl;
 }
 
-void vypis(Vec<Pair<ZZ_pX, long>> factors) { //TODO replace with overloaded ostream
+void vypis(Vec<Pair<ZZ_pX, long>> factors) { 
     string tmp = "";
     string final = "";
 
@@ -143,20 +149,24 @@ void CRT_val_A_mod_M_and_val_B_mod_N() {
 void CRT(ZZ_pX& A, ZZ_pX& MP, ZZ_pX& B, ZZ_pX& NP) {
     ZZ_pX temp, temp2, mulmod;
     GCD(temp, MP, NP);
+
     if (temp != 1) {
         cout << "GCD: " << temp << endl;
         return;
     }
+
     mul(mulmod, MP, NP);
     cout << "mulmod: "; vypis(mulmod);
     cout << "Raw format: " << mulmod << endl << endl;
 
     ZZ_pX invMP, invNP;
     rem(temp, MP, NP);
+
     if (InvModStatus(invNP, temp, NP)) {
         cout << "GCD: " << A << endl;
         return;
     }
+
     rem(temp, NP, MP);
     if (InvModStatus(invMP, temp, MP)) {
         cout << "GCD: " << A << endl;
@@ -252,6 +262,7 @@ void DFT() {
     ZZ_p::init(pole);
     ZZ_p prvok;
     mat_ZZ_p H, H2;
+
     H.SetDims(n, n);
     H2.SetDims(n, n);
 
