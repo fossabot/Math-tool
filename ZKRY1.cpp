@@ -1,4 +1,4 @@
-#include "funkcie.h"
+#include "config.h"
 #define prime_mod 10007 //prime used in cancer function, if needed use 1000003 instead
 
 int primes[] = {
@@ -81,15 +81,14 @@ void kvadraticke_korene() {
 // rules for Jacobi 
 int flip(ZZ& p, ZZ& q) {
     int res = -1;
-
     int x = rem(p, 4);
-    cout << "\ncislo p: " << p << " % 4 = " << x;
-    if (x != 3) res = 1;
+    cout << "\np: " << p << " % 4 = " << x;
 
+    if (x != 3) res = 1;
     x = rem(q, 4);
-    cout << "\ncislo q: " << q << " % 4 = " << x;
-    if (x != 3) res = 1;
+    cout << "\nq: " << q << " % 4 = " << x;
 
+    if (x != 3) res = 1;
     ZZ tmp = p;
     rem(p, q, p);
     q = tmp;
@@ -99,7 +98,7 @@ int flip(ZZ& p, ZZ& q) {
 
 int two(ZZ p) {
     int tmp = rem(p, 8);
-    cout << "\nhodnota pre cislo p: " << p << " % 8 = " << tmp;
+    cout << "\np: " << p << " % 8 = " << tmp;
     if (tmp == 1 || tmp == 7) return 1;
     if (tmp == 3 || tmp == 5) return -1;
     return 0;
@@ -107,102 +106,126 @@ int two(ZZ p) {
 
 int minus_one(ZZ p) {
     int tmp = rem(p, 4);
-    cout << "\nhodnota pre cislo p: " << p << " % 4 = " << tmp;
+    cout << "\np: " << p << " % 4 = " << tmp;
     if (tmp == 1) return 1;
     if (tmp == 3) return -1;
     return 0;
 }
 
-_Check_return_ int _cdecl Jakobi_postup(ZZ a, ZZ p) {
-    int res = 1, tmp = 1, counter = 1;
-    if (a > p) rem(a, a, p);
+void vypis_pravidlo(int& c, ZZ p, ZZ q, string s) {
+    cout << endl << c++ << "...pre J(" << p << "/" << q << ") plati pravidlo " << s;
+}
+
+void vypis_medzivysledok(int tmp) {
+    cout << "\nmedzivysledok je -> " << tmp << endl;
+}
+
+void vypis_vysledok_operacie(ZZ p, ZZ q) {
+    cout << "vysledok operacie = J(" << p << "/" << q << ")" << endl;
+}
+
+//expected return is -1/0/1
+int Jakobi_postup(ZZ p, ZZ q) {
+    int res = 1, tmp = 1, c = 1;
+    if (p > q) rem(p, p, q);
 
     while (1) {
-        while (!rem(a, 2)) { // if number is even do this
-            if (a == p - 1) {
-                cout << endl << counter++ << "...pre J(" << a << "/" << p << ") plati a = p - 1, takze sa da pouzit pravidlo J(p - 1/p)\n";
-                tmp = minus_one(p); // rule J(p-1/p)
-                cout << " je -> " << tmp << endl;
-                if (tmp == 0) { cout << "hodnota je 0, zly vstup\n"; return 0; } 
+        while (!rem(p, 2)) { // while number is even spin this
+
+            if (p == q - 1) {
+                vypis_pravidlo(c, p, q, "J(p-1/q)");
+                tmp = minus_one(q);
+
+                vypis_medzivysledok(tmp);
+                if (tmp == 0)  return 0;
 
                 res *= tmp;
-                a = 1;
+                p = 1;
+
+                vypis_vysledok_operacie(p, q);
                 break;
             }
-            cout << endl << counter++ << "...pre J(" << a << "/" << p << ") plati ze a = 2*k " << " takze J(" << a << "/" << p << ") rozdelim na (2/" << p << " * " << a / 2 << "/" << p << ").\n na (2/" << p << ") pouzijem pravidlo J(2/p)\n";
-            tmp = two(p); //rule J(2/p)
-            cout << " je -> " << tmp << endl;
-            if (tmp == 0) { cout << "hodnota je 0, zly vstup\n"; return 0; } 
+
+            vypis_pravidlo(c, p, q, "J(p/q) = (2/q) * ((p/2)/q)");
+            tmp = two(q);
+
+            vypis_medzivysledok(tmp);
+            if (tmp == 0) return 0;
 
             res *= tmp;
-            div(a, a, 2);
-        }
-        if (a == 1) { cout << endl << counter++ << "...pre J(" << a << "/" << p << ") plati a = 1,\n takze sa da pouzit pravidlo J(1/p)\nhodnota je -> 1\n"; break; } //rule J(1/p)
+            div(p, p, 2);
 
-        cout << endl << counter++ << "...pre J(" << a << "/" << p << ") plati ze oboje su neparne cisla, takze sa da pouzit pravidlo J(p/q) = J(q/p)\n";
-        tmp = flip(a, p); //rule J(p/q)= J(q/p), inside of flip another rule gets enforced: if a=b mod p, then J(a/p) = J(b/p) 
-        cout << "\n hodnota pre otocenie teda je -> " << tmp << endl << endl << counter++ << "...po vymene hodnot mozme uplatnit hned pravidlo, ak a=b mod p, tak J(a/p) = J(b/p)\n Dalej teda pokracujeme s J(" << a << "/" << p << ")\n";
-        if (a == 0) { cout << "GCD(a,p)!=1, takze hodnota je -> 0\n"; return 0; }
+            vypis_vysledok_operacie(p, q);
+        }
+
+        if (p == 1) {
+            vypis_pravidlo(c, p, q, "J(1/q)");
+            tmp = 1;
+
+            vypis_medzivysledok(tmp);
+            return res;
+        }
+
+        vypis_pravidlo(c, p, q, "J(p/q) = J(q/p)");
+        tmp = flip(p, q);
+
+        vypis_medzivysledok(tmp);
+        vypis_vysledok_operacie(p, q);
+
+        if (p == 0) {
+            vypis_pravidlo(c, p, q, "GCD(p,q) != 1");
+            tmp = 0;
+
+            vypis_medzivysledok(tmp);
+            return 0;
+        }
 
         res *= tmp;
     }
-    return res;//expected return is 1/-1, error return is 0
 }
 
 void Jakobi_postup() {
-    ZZ p, a;
-    cout << "zadaj modulo p: ";
+    cout << "Priklad na ratanie Jacobiho symbolu s postupom pre J(p/q):\n";
+    ZZ p, q;
+    cout << "zadaj p: ";
     cin >> p;
-    cout << "zadaj value a: ";
-    cin >> a;
+    cout << "zadaj q: ";
+    cin >> q;
 
-    cout << " po vynasobeni vsetkych medzivysledkov (cisel 1/-1/0), konecny vysledok je " << Jakobi_postup(a, p) << endl; //in case of bad input returns 0
+    cout << "\nVysledok pre J(" << p << "/" << q << ") = " << Jakobi_postup(p, q) << endl << endl;
 }
 
-void my_CRT(ZZ A, ZZ MP, ZZ B, ZZ NP) {
-    ZZ tmp, tmp2, mulmod, invMP, invNP;
+void CRT() {
+    ZZ A, M, B, N;
+    napln_hodnoty(M, A, N, B);
 
-    mul(mulmod, MP, NP);
+    ZZ tmp, tmp2, mulmod;
+    mulmod = M * N;
 
-    rem(tmp, MP, NP);
-    InvMod(invNP, tmp, NP);
+    ZZ invM, invN;
+    tmp = M % N;
+    InvMod(invN, tmp, N);
 
-    rem(tmp, NP, MP);
-    InvMod(invMP, tmp, MP);
+    tmp = N % M;
+    InvMod(invM, tmp, M);
 
-    mul(tmp, A, invMP);
-    mul(tmp, tmp, NP);
-    mul(tmp2, B, invNP);
-    mul(tmp2, tmp2, MP);
+    tmp = A * invM * N;
+    tmp2 = B * invN * M;
 
     cout << "mod1 * mod2: " << mulmod << endl
-        << "inv prvok prva rovnica: " << invMP << endl
-        << "inv prvok druha rovnica: " << invNP << endl
-        << " prvok A( " << A << " ) * invMP( " << invMP << " ) * "
-        << " modulo NP( " << NP << ") = " << tmp << endl
-        << " prvok B( " << B << " ) * invNP( " << invNP << " ) * "
-        << " modulo MP( " << MP << ") = " << tmp2 << endl;
+        << "inv prvok prva rovnica: " << invM << endl
+        << "inv prvok druha rovnica: " << invN << endl
+        << " prvok A( " << A << " ) * invMP( " << invM << " ) * "
+        << " modulo NP( " << N << ") = " << tmp << endl
+        << " prvok B( " << B << " ) * invNP( " << invN << " ) * "
+        << " modulo MP( " << M << ") = " << tmp2 << endl;
 
-    add(tmp, tmp, tmp2);
-    rem(tmp2, tmp, mulmod);
+    tmp += tmp2;
+    tmp2 = tmp % mulmod;
 
     cout << "tieto vysledky teraz scitam a zmodulujem-> ( "
         << tmp << " ) % (" << mulmod << ") = "
         << tmp2 << " mod " << mulmod << endl;
-}
-
-void CRT() {
-    ZZ A, P, a, p;
-    cout << "Input modulo p: ";
-    cin >> p;
-    cout << "Input value a: ";
-    cin >> a;
-    cout << "Input modulo P: ";
-    cin >> P;
-    cout << "Input value A: ";
-    cin >> A;
-
-    my_CRT(a, p, A, P);
 }
 
 vec_ZZ factorize_number(ZZ n) {
@@ -240,24 +263,30 @@ int cancer(vec_ZZ& list) {
 
 ZZ lambda(ZZ p) {
     ZZ res(1);
+
     for (ZZ i(1); i < p; i++) {
         int tmp = ord(i, p);
         if (tmp > res) res = tmp;
     }
+
     return res;
 }
 
 void vec_to_lambda(vec_ZZ& list) {
     vec_ZZ res;
+
     for (int i = 0; i < list.length(); i++)
         res.append(lambda(list[i]));
+
     list = res;
 }
 
 int phi(int p) {
     int res = 1;
+
     for (int i = 2; i < p; i++)
         if (GCD(i, p) == 1) res++;
+
     return res;
 }
 
@@ -268,6 +297,7 @@ ZZ phi(ZZ p) {
 bool is_done(vec_ZZ list) {
     for (int i = 0; i < list.length(); i++)
         if (list[i] != 1) return 0;
+
     return 1;
 }
 

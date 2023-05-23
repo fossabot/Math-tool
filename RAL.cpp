@@ -1,4 +1,4 @@
-#include "funkcie.h"
+#include "config.h"
 
 void func(string& dst, int i, int val) {
     string a = to_string(i);
@@ -130,90 +130,90 @@ void inverse_poly_A_mod_poly_MP_mod_M() {
     }
 }
 
-void CRT_val_A_mod_M_and_val_B_mod_N() {
-    ZZ A, M, B, N;
-    cout << "Input mod M: ";
+void napln_hodnoty(ZZ& M, ZZ& A, ZZ& N, ZZ& B) {
+    cout << "Zadaj modulo M: ";
     cin >> M;
-    cout << "Input val A: ";
+    cout << "Zadaj hodnotu A: ";
     cin >> A;
-    cout << "Input mod N: ";
+    cout << "Zadaj modulo N: ";
     cin >> N;
-    cout << "Input val B: ";
+    cout << "Zadaj hodnotu B: ";
     cin >> B;
+}
+
+void basic_CRT() {
+    ZZ A, M, B, N;
+    napln_hodnoty(M, A, N, B);
 
     CRT(A, M, B, N);
     if (A < 0) add(A, A, M);
     cout << "result: " << A << " mod: " << M << endl;
 }
 
-void CRT(ZZ_pX& A, ZZ_pX& MP, ZZ_pX& B, ZZ_pX& NP) {
-    ZZ_pX temp, temp2, mulmod;
-    GCD(temp, MP, NP);
-
-    if (temp != 1) {
-        cout << "GCD: " << temp << endl;
-        return;
-    }
-
-    mul(mulmod, MP, NP);
-    cout << "mulmod: "; vypis(mulmod);
-    cout << "Raw format: " << mulmod << endl << endl;
-
-    ZZ_pX invMP, invNP;
-    rem(temp, MP, NP);
-
-    if (InvModStatus(invNP, temp, NP)) {
-        cout << "GCD: " << A << endl;
-        return;
-    }
-
-    rem(temp, NP, MP);
-    if (InvModStatus(invMP, temp, MP)) {
-        cout << "GCD: " << A << endl;
-        return;
-    }
-
-    cout << "invMP: "; vypis(invMP);
-    cout << "Raw format: " << invMP << endl << endl;
-
-    cout << "invNP: "; vypis(invNP);
-    cout << "Raw format: " << invNP << endl << endl;
-
-    mul(temp, A, invMP);
-    mul(temp, temp, NP);
-
-    mul(temp2, B, invNP);
-    mul(temp2, temp2, MP);
-
-    add(temp, temp, temp2);
-    rem(temp, temp, mulmod);
-
-    cout << "result: "; vypis(temp);
-    cout << "Raw format: " << temp << endl;
+void napln_polynomy(ZZ_pX& MP, ZZ_pX& A, ZZ_pX& NP, ZZ_pX& B) {
+    cout << "Zadaj polynom MP: ";
+    cin >> MP;
+    cout << "Zadaj polynom A: ";
+    cin >> A;
+    cout << "Zadaj polynom NP: ";
+    cin >> NP;
+    cout << "Zadaj polynom B: ";
+    cin >> B;
 }
 
-void CRT_poly_A_mod_poly_MP_and_poly_B_mod_poly_NP_mod_M() {
-    ZZ M;
+void polynomial_CRT() {
+    ZZ mod;
     cout << "Input mod M: ";
-    cin >> M;
-    ZZ_p::init(M);
+    cin >> mod;
+    ZZ_p::init(mod);
 
     ZZ_pX A, MP, B, NP;
-    cout << "Input poly mod MP: ";
-    cin >> MP;
-    cout << "Input poly A: ";
-    cin >> A;
-    cout << "Input poly mod NP: ";
-    cin >> NP;
-    cout << "Input poly B: ";
-    cin >> B;
+    napln_polynomy(MP, A, NP, B);
 
-    cout << "\nzadane pole: " << M;
-    cout << "\nzadany polynom: "; vypis(A); cout << " modulo: "; vypis(MP);
-    cout << "\nzadany polynom: "; vypis(B); cout << " modulo: "; vypis(NP);
+    cout << "\nzadane pole: GF(" << mod << ")\n";
+    cout << "\nzadany polynom A: "; vypis(A); cout << "modulo MP: "; vypis(MP);
+    cout << "\nzadany polynom B: "; vypis(B); cout << "modulo NP: "; vypis(NP);
     cout << endl;
 
-    CRT(A, MP, B, NP);
+    ZZ_pX res, M;
+
+    GCD(res, MP, NP);
+    if (res != 1) {
+        cout << "GCD(MP,NP) != 1, ale: " << res << endl;
+        return;
+    }
+
+    M = MP * NP;
+
+    cout << "M = MP * NP\n";
+    cout << "M: "; vypis(M);
+    cout << "Raw format: " << M << endl << endl;
+
+    ZZ_pX invMP, invNP;
+
+    res = MP % NP;
+    if (InvModStatus(invNP, res, NP)) {
+        cout << "GCD: " << A << endl;
+        return;
+    }
+
+    res = NP % MP;
+    if (InvModStatus(invMP, res, MP)) {
+        cout << "GCD: " << A << endl;
+        return;
+    }
+
+    cout << "inv_MP: "; vypis(invMP);
+    cout << "Raw format: " << invMP << endl << endl;
+
+    cout << "inv_NP: "; vypis(invNP);
+    cout << "Raw format: " << invNP << endl << endl;
+
+    res = (A * invMP * NP + B * invNP * MP) % M;
+
+    cout << "result = (A * inv_MP * NP + B * inv_NP * MP) % M\n";
+    cout << "result: "; vypis(res); 
+    cout << "Raw format: " << res << endl;
 }
 
 void list_of_cyklo_poly() {
@@ -391,8 +391,8 @@ void (*RAL[11])() = { ord_val_A_mod_M,
                       is_irred_poly_A_mod_M,
                       factor_poly_A_mod_M,
                       inverse_poly_A_mod_poly_MP_mod_M,
-                      CRT_val_A_mod_M_and_val_B_mod_N,
-                      CRT_poly_A_mod_poly_MP_and_poly_B_mod_poly_NP_mod_M,
+                      basic_CRT,
+                      polynomial_CRT,
                       DFT,
                       kvadraticke_sito,
                       berlekamp,

@@ -1,4 +1,4 @@
-#include "funkcie.h"
+#include "config.h"
 
 //sifrovania
 string to_lower(string input) {
@@ -35,22 +35,22 @@ int ifunc(int x, int a, int b, int c) {
 #define in a, b, c
 
 #define asd string OT, string& ZT, int &IV, int a, int b, int c, int i
-void ecb(asd) { ZT += ival(func(ot, in)); }
-void cbc(asd) { ZT += ival(func(ot + zt, in)); }
-void cfb(asd) { ZT += ival(func(func(zt, in), 1, ot, c)); }
-void ofb(asd) { IV = func(IV, in); ZT += ival(func(ot, 1, IV, c)); }
-void ctr(asd) { IV = func(IV + i + 1, in); ZT += ival(func(ot, 1, IV, c)); }
-void(*sifrovat[5])(asd) = {ecb, cbc, cfb, ofb, ctr};
+void _ecb(asd) { ZT += ival(func(ot, in)); }
+void _cbc(asd) { ZT += ival(func(ot + zt, in)); }
+void _cfb(asd) { ZT += ival(func(func(zt, in), 1, ot, c)); }
+void _ofb(asd) { IV = func(IV, in); ZT += ival(func(ot, 1, IV, c)); }
+void _ctr(asd) { IV = func(IV + i + 1, in); ZT += ival(func(ot, 1, IV, c)); }
+void(*sifrovat[5])(asd) = {_ecb, _cbc, _cfb, _ofb, _ctr};
 
 #define fgh string& OT, string ZT, int& IV, int a, int b, int c, int i
-void ecb(fgh) { OT += ival(ifunc(zt, in)); }
-void cbc(fgh) { OT += ival(func(ifunc(zt, in) - val(ZT[i + 1]), 1, c, c)); }
-void cfb(fgh) { OT += ival(func(zt - func(val(ZT[i + 1]), in), 1, c, c)); }
-void ofb(fgh) { IV = func(IV, in); OT += ival(func(zt - IV, 1, c, c)); }
-void ctr(fgh) { IV = func(IV + i + 1, in); OT += ival(func(zt - IV, 1, c, c)); }
-void(*desifrovat[5])(fgh) = { ecb, cbc, cfb, ofb, ctr };
+void _ecb(fgh) { OT += ival(ifunc(zt, in)); }
+void _cbc(fgh) { OT += ival(func(ifunc(zt, in) - val(ZT[i + 1]), 1, c, c)); }
+void _cfb(fgh) { OT += ival(func(zt - func(val(ZT[i + 1]), in), 1, c, c)); }
+void _ofb(fgh) { IV = func(IV, in); OT += ival(func(zt - IV, 1, c, c)); }
+void _ctr(fgh) { IV = func(IV + i + 1, in); OT += ival(func(zt - IV, 1, c, c)); }
+void(*desifrovat[5])(fgh) = { _ecb, _cbc, _cfb, _ofb, _ctr };
 
-enum class mode { ecb, cbc, cfb, ofb, ctr };
+enum mode { ecb, cbc, cfb, ofb, ctr };
 
 mode input0() {
     int tmp;
@@ -71,7 +71,7 @@ string input1(string input) {
 }
 
 void input2(int& a, int& b, int& c) {
-    cout << "Zadaj parametre funkcie f pre Ax+b mod c:";
+    cout << "Zadaj parametre (a b c) funkcie f pre Ax+b mod c:";
     cin >> a >> b >> c;
     cout << a << "x + " << b << " mod " << c << endl;
 }
@@ -83,27 +83,27 @@ void sifruj() {
     string OT = input1("OT");
 
     int IV=0, in;
-    if (m != mode::ecb) {
+    if (m != ecb) {
         cout << "Zadaj hodnotu IV: ";
         cin >> IV;
     }
     input2(in);
 
     string ZT;
-    if(m == mode::cbc || m == mode::cfb) ZT += ival(func(IV, in));
+    if(m == cbc || m == cfb) ZT += ival(func(IV, in));
 
     for (int i = 0; i < OT.length(); i++)
-        sifrovat[(int)m](params);
+        sifrovat[m](params);
     cout << ZT << endl;
 }
 
 void desifruj() {
     mode m = input0();
     string ZT = input1("ZT");
-    if (m == mode::cbc || m == mode::cfb) reverse(ZT.begin(), ZT.end());
+    if (m == cbc || m == cfb) reverse(ZT.begin(), ZT.end());
 
     int IV=0, in;
-    if (m == mode::ofb || m == mode::ctr) {
+    if (m == ofb || m == ctr) {
         cout << "Zadaj hodnotu IV: ";
         cin >> IV;
     }
@@ -111,16 +111,16 @@ void desifruj() {
 
     string OT;
 
-    if (m == mode::cbc || m == mode::cfb) {
+    if (m == cbc || m == cfb) {
         for (int i = 0; i < ZT.length()-1; i++)
-            desifrovat[(int)m](params);
+            desifrovat[m](params);
         IV = ifunc(val(ZT[ZT.length() - 1]), in);
         reverse(OT.begin(), OT.end());
         cout << endl << "OT: " << OT << endl << "IV: " << IV << endl;
     }
     else {
         for (int i = 0; i < ZT.length(); i++)
-            desifrovat[(int)m](params);
+            desifrovat[m](params);
         cout << OT << endl;
     }
 }
